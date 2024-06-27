@@ -37,6 +37,11 @@
        (format "[%s @ %s] %s\n" (format-time-string "%Y-%m-%d %H:%M:%S.%06N") (selected-frame) msg) nil
        (format "%s/%s" (getenv "HOME" (selected-frame)) "Library/Logs/emacs.log"))))
 
+  (defun debug-log (msg)
+    "Call `emacs-log` only if 'emacs-debug-p is set"
+    (interactive "s")
+    (if (and (boundp 'emacs-debug-p) emacs-debug-p) (emacs-log msg)))
+
   ;;; Silence `Loading...` Startup Messages
   (defun load-file (file &optional noerror nomessage)
     "Load the Lisp file named FILE."

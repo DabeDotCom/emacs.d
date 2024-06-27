@@ -160,14 +160,14 @@
       (when (and (not (buffer-file-name nil))
                  frame-buffers
                  (not (memq (window-buffer) frame-buffers)))
-;(emacs-log (format "EVIL-SWITCH-TO-BUFFER:  ADDING \"%s\" => (%s)" (window-buffer) frame-buffers))
+(debug-log (format "EVIL-SWITCH-TO-BUFFER:  ADDING \"%s\" => (%s)" (window-buffer) frame-buffers))
         (set-frame-parameter nil 'evil-frame-buffers (append frame-buffers (list (window-buffer))))
       )))
 
   (advice-add 'find-file :after #'evil-frame-buffers-find-file-after)
   (defun evil-frame-buffers-find-file-after (&rest args)
     (let ((frame-buffers (frame-parameter nil 'evil-frame-buffers)))
-;(emacs-log (format "FIND-FILE-AFTER(%s -- %s) => (%s)" args (window-buffer) frame-buffers))
+;(debug-log (format "FIND-FILE-AFTER(%s -- %s) => (%s)" args (window-buffer) frame-buffers))
       (set-frame-parameter nil 'evil-frame-buffers (append frame-buffers (list (window-buffer))))
     )
   )
@@ -177,7 +177,7 @@
     (let ((frame-buffers (frame-parameter nil 'evil-frame-buffers)))
 
       ;;; Remove Current Buffer From 'evil-frame-buffers
-;(emacs-log (format "EVIL-BURY-BUFFER:  REMOVING \"%s\" => (%s)" (window-buffer) frame-buffers))
+(debug-log (format "EVIL-BURY-BUFFER:  REMOVING \"%s\" => (%s)" (window-buffer) frame-buffers))
       (set-frame-parameter nil 'evil-frame-buffers (remove (window-buffer) frame-buffers))
 
       ;;; Call Original 'bury-buffer
@@ -202,7 +202,7 @@
     (let (l)
       (catch 'done
         (dolist (b (seq-filter 'buffer-live-p (frame-parameter (selected-frame) 'evil-frame-buffers)))
-;(emacs-log (format "PREV-EVIL-FRAME-BUFFERS:  SEARCHING FOR \"%s\" == \"%s\" (%s)" (current-buffer) b (frame-parameter (selected-frame) 'evil-frame-buffers)))
+(debug-log (format "PREV-EVIL-FRAME-BUFFERS:  SEARCHING FOR \"%s\" == \"%s\" (%s)" (current-buffer) b (frame-parameter (selected-frame) 'evil-frame-buffers)))
           (when (equal b (current-buffer)) (throw 'done l))
           (setq l (cons b l))))
       l))
@@ -213,7 +213,7 @@
     (let (l)
       (catch 'done
         (dolist (b (reverse (seq-filter 'buffer-live-p (frame-parameter (selected-frame) 'evil-frame-buffers))))
-;(emacs-log (format "NEXT-EVIL-FRAME-BUFFERS:  SEARCHING FOR \"%s\" == \"%s\" (%s)" (current-buffer) b (frame-parameter (selected-frame) 'evil-frame-buffers)))
+(debug-log (format "NEXT-EVIL-FRAME-BUFFERS:  SEARCHING FOR \"%s\" == \"%s\" (%s)" (current-buffer) b (frame-parameter (selected-frame) 'evil-frame-buffers)))
           (when (equal b (current-buffer)) (throw 'done l))
           (setq l (cons b l))))
       l))
@@ -282,7 +282,7 @@
     (setq count (or count 1))
     (let ((b (nth-prev-evil-frame-buffer count)))
       (when b
-;(emacs-log (format "EVIL-PREV-BUFFER:  SWITCHING TO #%s: \"%s\"" count b))
+(debug-log (format "EVIL-PREV-BUFFER:  SWITCHING TO #%s: \"%s\"" count b))
         (switch-to-buffer b))))
 
   (evil-define-command evil-next-buffer (&optional count)
@@ -291,7 +291,7 @@
     (setq count (or count 1))
     (let ((b (nth-next-evil-frame-buffer count)))
       (when b
-;(emacs-log (format "EVIL-PREV-BUFFER:  SWITCHING TO #%s: \"%s\"" count b))
+(debug-log (format "EVIL-PREV-BUFFER:  SWITCHING TO #%s: \"%s\"" count b))
         (switch-to-buffer b))))
 
   (evil-define-command evil-split-prev-buffer (&optional count)
@@ -564,9 +564,9 @@
   (defun evil-frame-buffers-kill-buffer-before (&rest args)
     (when (not (car args))
       (let ((frame-buffers (frame-parameter nil 'evil-frame-buffers)))
-;(emacs-log (format "KILL-BUFFER-BEFORE(%s -- %s) => (%s)" args (window-buffer) frame-buffers))
-;(emacs-log (format "KILL-BUFFER-BEFORE(NEXT) => (%s)" (next-evil-frame-buffers)))
-;(emacs-log (format "KILL-BUFFER-BEFORE(PREV) => (%s)" (prev-evil-frame-buffers)))
+(debug-log (format "KILL-BUFFER-BEFORE(%s -- %s) => (%s)" args (window-buffer) frame-buffers))
+(debug-log (format "KILL-BUFFER-BEFORE(NEXT) => (%s)" (next-evil-frame-buffers)))
+(debug-log (format "KILL-BUFFER-BEFORE(PREV) => (%s)" (prev-evil-frame-buffers)))
         (set-frame-parameter nil 'evil-frame-buffers (remove (window-buffer) frame-buffers))
       )))
 
@@ -576,9 +576,9 @@
   (defun evil-frame-buffers-kill-buffer-after (&rest args)
     (when (not (car args))
       (let ((frame-buffers (frame-parameter nil 'evil-frame-buffers)))
-;(emacs-log (format "KILL-BUFFER-AFTER(%s -- %s) => (%s)" args (window-buffer) frame-buffers))
-;(emacs-log (format "KILL-BUFFER-AFTER(NEXT) => (%s)" (next-evil-frame-buffers)))
-;(emacs-log (format "KILL-BUFFER-AFTER(PREV) => (%s)" (prev-evil-frame-buffers)))
+(debug-log (format "KILL-BUFFER-AFTER(%s -- %s) => (%s)" args (window-buffer) frame-buffers))
+(debug-log (format "KILL-BUFFER-AFTER(NEXT) => (%s)" (next-evil-frame-buffers)))
+(debug-log (format "KILL-BUFFER-AFTER(PREV) => (%s)" (prev-evil-frame-buffers)))
         (if (not frame-buffers)
             (delete-frame)
           (if (next-evil-frame-buffers)
@@ -598,13 +598,13 @@
     :repeat nil
     (interactive "<!>")
     (condition-case nil
-;(progn (emacs-log (format "EVIL-QUIT: DELETING WINDOW %s FROM %s on %s (%s)" (window-buffer) (selected-frame) (frame-parameter nil 'tty) (frame-parameter nil 'evil-frame-buffers)))
+(progn (debug-log (format "EVIL-QUIT: DELETING WINDOW %s FROM %s on %s (%s)" (window-buffer) (selected-frame) (frame-parameter nil 'tty) (frame-parameter nil 'evil-frame-buffers)))
           (delete-window)
-;(emacs-log        (format "EVIL-QUIT: DELETED  WINDOW")))
+(debug-log        (format "EVIL-QUIT: DELETED  WINDOW")))
 
       (error
         (condition-case nil
-;(progn (emacs-log (format "EVIL-QUIT: DELETING FRAME %s on %s (%s)" (selected-frame) (frame-parameter nil 'tty) (frame-parameter nil 'evil-frame-buffers)))
+(progn (debug-log (format "EVIL-QUIT: DELETING FRAME %s on %s (%s)" (selected-frame) (frame-parameter nil 'tty) (frame-parameter nil 'evil-frame-buffers)))
             (progn
               ;;; If we want a list of which other frames our buffer(s) are in...
               ; (dolist (buf (frame-parameter nil 'evil-frame-buffers))
@@ -630,18 +630,18 @@
                     (kill-buffer buf))))
 
               (delete-frame))
-;(emacs-log        (format "EVIL-QUIT: DELETED  FRAME")))
+(debug-log        (format "EVIL-QUIT: DELETED  FRAME")))
 
           (error
            (condition-case nil
-;(progn (emacs-log (format "EVIL-QUIT: DELETING TAB..."))
+(progn (debug-log (format "EVIL-QUIT: DELETING TAB..."))
                (tab-bar-close-tab)
-;(emacs-log        (format "EVIL-QUIT: DELETED  TAB")))
+(debug-log        (format "EVIL-QUIT: DELETED  TAB")))
              (error
               (if force
-;(progn (emacs-log (format "EVIL-QUIT: KILLING EMACS..."))
+(progn (debug-log (format "EVIL-QUIT: KILLING EMACS..."))
                   (kill-emacs)
-;(emacs-log        (format "EVIL-QUIT: KILLED EMACS")))
+(debug-log        (format "EVIL-QUIT: KILLED EMACS")))
                 (save-buffers-kill-emacs)))))))))
 
   (evil-define-command evil-quit-all (&optional bang)
