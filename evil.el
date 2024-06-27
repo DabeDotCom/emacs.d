@@ -404,6 +404,26 @@
   (define-key evil-normal-state-map (kbd "C-w 2") 'split-window-below)
   (define-key evil-normal-state-map (kbd "C-w b") 'switch-to-buffer)
 
+  (evil-define-command evil-maximize-window-next (count)
+    "Maximize the height of the COUNT'th next window"
+    (interactive "<c>")
+    (dotimes (_ (or count 1))
+      (evil-window-next nil))
+      (evil-window-set-height nil)
+      (evil-window-set-width nil))
+
+  (evil-define-command evil-maximize-window-prev (count)
+    "Maximize the height of the COUNT'th next window"
+    (interactive "<c>")
+    (dotimes (_ (or count 1))
+      (evil-window-prev nil))
+      (evil-window-set-height nil)
+      (evil-window-set-width nil))
+
+  (define-key evil-normal-state-map (kbd "C-w C-i") 'evil-maximize-window-next)
+  (define-key evil-normal-state-map (kbd "C-w }") 'evil-maximize-window-next)
+  (define-key evil-normal-state-map (kbd "C-w {") 'evil-maximize-window-prev)
+  (define-key evil-normal-state-map (kbd "C-w .") 'evil-window-set-height)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  Make `_` a "word" character  ;;;
