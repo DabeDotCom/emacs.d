@@ -252,6 +252,30 @@
          (t 1))))
      (t nil))))
 
+  (evil-define-command nth-evil-frame-buffer (&optional count)
+    "Return the COUNT'th buffer in the `evil-frame-buffers` list"
+    (interactive "<num>")
+    (setq count (or count 1))
+    (if (= count 0)
+        (progn (message "%s" (propertize "E939: positive count required" 'face 'evil-ex-info)) nil)
+      (let ((frame-buffers (frame-parameter nil 'evil-frame-buffers)))
+        (when (< count 0)
+          (setq count (- (length frame-buffers) (- 0 count 1))))
+        (if (< count 1)
+            (progn (message "%s" (propertize "E164: Cannot go before first file" 'face 'evil-ex-info)) nil)
+          (if (< (length frame-buffers) count)
+              (progn (message "%s" (propertize "E165: Cannot go beyond last file" 'face 'evil-ex-info)) nil)
+            (let ((b (nth (- count 1) frame-buffers)))
+              (if (not (buffer-live-p b))
+                  (progn (message "%s -- %s" (propertize "E165: Cannot go beyond last file" 'face 'evil-ex-info) b) nil)
+                b)))))))
+
+  (evil-define-command nth-last-evil-frame-buffer (&optional count)
+    "Return the COUNT'th buffer from the end of the `evil-frame-buffers` list"
+    (interactive "<num>")
+    (setq count (or count 1))
+    (nth-evil-frame-buffer (- 0 count)))
+
   (defun nth-prev-evil-frame-buffer (&optional count)
     "Return the COUNT'th previous buffer in the `evil-frame-buffers` list"
     (interactive "num")
@@ -283,6 +307,30 @@
               (if (not (buffer-live-p b))
                   (progn (message "%s -- %s" (propertize "E165: Cannot go beyond last file" 'face 'evil-ex-info) b) nil)
                 b)))))))
+
+  (evil-define-command evil-nth-buffer (&optional count)
+    "Switch to the COUNT'th buffer in the `evil-frame-buffers` list"
+    (interactive "<num>")
+    (setq count (or count 1))
+    (let ((b (nth-evil-frame-buffer count)))
+      (when b
+        (switch-to-buffer b))))
+
+  (evil-define-command evil-nth-last-buffer (&optional count)
+    "Switch to the COUNT'th buffer from the end of the `evil-frame-buffers` list"
+    (interactive "<num>")
+    (setq count (or count 1))
+    (let ((b (nth-last-evil-frame-buffer count)))
+      (when b
+        (switch-to-buffer b))))
+
+  (evil-define-command evil-first-buffer ()
+    "Switch to the first buffer in the `evil-frame-buffers` list"
+    (evil-nth-buffer))
+
+  (evil-define-command evil-last-buffer ()
+    "Switch to the last buffer in the `evil-frame-buffers` list"
+    (evil-nth-last-buffer))
 
   (evil-define-command evil-prev-buffer (&optional count)
     "Switch to the COUNT'th previous buffer in the `evil-frame-buffers` list"
@@ -333,6 +381,10 @@
           (evil-split-next-buffer))
     )))
 
+  (evil-ex-define-cmd "fir[st]" 'evil-nth-buffer)
+  (evil-ex-define-cmd "la[st]" 'evil-nth-last-buffer)
+  (evil-ex-define-cmd "argu[ment]" 'evil-nth-buffer)
+  (evil-ex-define-cmd "nth" 'evil-nth-buffer)
   (evil-ex-define-cmd "n[ext]" 'evil-next-buffer)
   (evil-ex-define-cmd "p[revious]" 'evil-prev-buffer)
   (evil-ex-define-cmd "sn[ext]" 'evil-split-next-buffer)
