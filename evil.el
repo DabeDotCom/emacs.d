@@ -379,6 +379,7 @@
         (delete-other-windows)
         (dotimes (_ (- (min count (length bufs)) 1))
           (evil-split-next-buffer))
+        (evil-window-top-left)
     )))
 
   (evil-ex-define-cmd "fir[st]" 'evil-nth-buffer)
