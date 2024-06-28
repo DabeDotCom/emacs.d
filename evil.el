@@ -18,6 +18,7 @@
   (customize-set-variable 'evil-auto-indent nil)
   (customize-set-variable 'evil-undo-system 'undo-redo)
   (customize-set-variable 'completions-format 'vertical)
+  (customize-set-variable 'window-combination-resize t)
 
   (load-theme 'vim-colors t t)
   (enable-theme 'vim-colors)
