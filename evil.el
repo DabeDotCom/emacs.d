@@ -22,7 +22,6 @@
   (load-theme 'vim-colors t t)
   (enable-theme 'vim-colors)
 
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  From https://www.emacswiki.org/emacs/AlarmBell  ;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -130,7 +129,7 @@
 
   (defun update-evil-frame-buffers ()
     (when (not (active-minibuffer-window))   ;;; Throttle `buffer-list-update-hook`
-;(emacs-log (format "UPDATE-EVIL-FRAME-BUFFERS(%s) => (%s)" (selected-frame) (frame-parameter (selected-frame) 'evil-frame-buffers)))
+;(emacs-log (format "UPDATE-EVIL-FRAME-BUFFERS(%s) => <%s>" (selected-frame) (frame-parameter (selected-frame) 'evil-frame-buffers)))
 
       ;;; Select "Live" Buffers From 'evil-frame-buffers List
       (let ((l (seq-filter 'buffer-live-p (frame-parameter (selected-frame) 'evil-frame-buffers))))
@@ -160,8 +159,9 @@
       (when (and (not (buffer-file-name nil))
                  frame-buffers
                  (not (memq (window-buffer) frame-buffers)))
-(debug-log (format "EVIL-SWITCH-TO-BUFFER:  ADDING \"%s\" => (%s)" (window-buffer) frame-buffers))
+(progn (debug-log (format "EVIL-SWITCH-TO-BUFFER:  ADDING \"%s\" => (%s)" (window-buffer) frame-buffers))
         (set-frame-parameter nil 'evil-frame-buffers (append frame-buffers (list (window-buffer))))
+)
       )))
 
   (advice-add 'find-file :after #'evil-frame-buffers-find-file-after)
@@ -597,14 +597,14 @@
     "Close the current window, current frame, current tab, Emacs."
     :repeat nil
     (interactive "<!>")
-    (condition-case nil
-(progn (debug-log (format "EVIL-QUIT: DELETING WINDOW %s FROM %s on %s (%s)" (window-buffer) (selected-frame) (frame-parameter nil 'tty) (frame-parameter nil 'evil-frame-buffers)))
+    (condition-case err
+(progn (debug-log (format "EVIL-QUIT: DELETING WINDOW %s FROM %s on %s <%s>" (selected-window) (selected-frame) (frame-parameter nil 'tty) (frame-parameter nil 'evil-frame-buffers)))
           (delete-window)
 (debug-log        (format "EVIL-QUIT: DELETED  WINDOW")))
 
       (error
         (condition-case nil
-(progn (debug-log (format "EVIL-QUIT: DELETING FRAME %s on %s (%s)" (selected-frame) (frame-parameter nil 'tty) (frame-parameter nil 'evil-frame-buffers)))
+(progn (debug-log (format "EVIL-QUIT: FINAL WINDOW %s on %s <%s> -- %s" (selected-frame) (frame-parameter nil 'tty) (frame-parameter nil 'evil-frame-buffers) err))
             (progn
               ;;; If we want a list of which other frames our buffer(s) are in...
               ; (dolist (buf (frame-parameter nil 'evil-frame-buffers))
@@ -615,7 +615,7 @@
               ;           (setq others (cons frame others)))))
               ;
               ;     (dolist (frame others)
-              ;       (emacs-log (format "EVIL-QUIT: WINDOW %s IN OTHER %s on %s (%s)" buf frame (frame-parameter frame 'tty) (frame-parameter frame 'evil-frame-buffers))))
+              ;       (emacs-log (format "EVIL-QUIT: WINDOW %s IN OTHER %s on %s <%s>" buf frame (frame-parameter frame 'tty) (frame-parameter frame 'evil-frame-buffers))))
               ;   ))
 
               ;;; If we just want to know whether or not it's elsewhere...
@@ -625,12 +625,17 @@
                     (dolist (buf (frame-parameter frame 'evil-frame-buffers))
                       (setq others (cons buf others)))))
 
+(debug-log        (format "EVIL-QUIT: OTHERS (%s)" others))
                 (dolist (buf (frame-parameter nil 'evil-frame-buffers))
+(debug-log        (format "EVIL-QUIT: TESTING (%s) vs. (%s)" buf others))
                   (when (not (memq buf others))
+(debug-log        (format "EVIL-QUIT: DELETING OTHERS (%s)" buf))
                     (kill-buffer buf))))
 
+(debug-log        (format "EVIL-QUIT: DELETING FRAME %s" (selected-frame)))
               (delete-frame))
-(debug-log        (format "EVIL-QUIT: DELETED  FRAME")))
+(debug-log        (format "EVIL-QUIT: DELETED  FRAME"))
+)
 
           (error
            (condition-case nil
