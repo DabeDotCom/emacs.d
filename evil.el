@@ -196,25 +196,33 @@
     ))
 
 
-  (defun prev-evil-frame-buffers (&optional frame)
-    "List Previous Frame Buffers in FRAME"
+  (defun prev-evil-frame-buffers (&optional window)
+    "List Previous Frame Buffers in WINDOW"
     (interactive)
-    (let (l)
+    (setq window (or window (selected-window)))
+    (let* ((frame (window-frame window))
+           (buffer (window-buffer window))
+           (frame-buffers (frame-parameter frame 'evil-frame-buffers))
+           l)
       (catch 'done
-        (dolist (b (seq-filter 'buffer-live-p (frame-parameter (selected-frame) 'evil-frame-buffers)))
-(debug-log (format "PREV-EVIL-FRAME-BUFFERS:  SEARCHING FOR \"%s\" == \"%s\" (%s)" (current-buffer) b (frame-parameter (selected-frame) 'evil-frame-buffers)))
-          (when (equal b (current-buffer)) (throw 'done l))
+        (dolist (b (seq-filter 'buffer-live-p frame-buffers))
+;(debug-log (format "PREV-EVIL-FRAME-BUFFERS:  SEARCHING %s FOR \"%s\" == \"%s\" <%s>" frame buffer b frame-buffers))
+          (when (equal b buffer) (throw 'done l))
           (setq l (cons b l))))
       l))
 
-  (defun next-evil-frame-buffers (&optional frame)
-    "List Next Frame Buffers in FRAME"
+  (defun next-evil-frame-buffers (&optional window)
+    "List Next Frame Buffers in WINDOW"
     (interactive)
-    (let (l)
+    (setq window (or window (selected-window)))
+    (let* ((frame (window-frame window))
+           (buffer (window-buffer window))
+           (frame-buffers (frame-parameter frame 'evil-frame-buffers))
+           l)
       (catch 'done
-        (dolist (b (reverse (seq-filter 'buffer-live-p (frame-parameter (selected-frame) 'evil-frame-buffers))))
-(debug-log (format "NEXT-EVIL-FRAME-BUFFERS:  SEARCHING FOR \"%s\" == \"%s\" (%s)" (current-buffer) b (frame-parameter (selected-frame) 'evil-frame-buffers)))
-          (when (equal b (current-buffer)) (throw 'done l))
+        (dolist (b (reverse (seq-filter 'buffer-live-p frame-buffers)))
+;(debug-log (format "NEXT-EVIL-FRAME-BUFFERS:  SEARCHING %s FOR \"%s\" == \"%s\" <%s>" frame buffer b frame-buffers))
+          (when (equal b buffer) (throw 'done l))
           (setq l (cons b l))))
       l))
 
