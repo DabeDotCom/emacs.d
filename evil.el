@@ -227,6 +227,32 @@
           (setq l (cons b l))))
       l))
 
+  (defun relative-file-name (&optional filename window)
+    "Return an abbreviated version of FILENAME, relative to this frame's PWD"
+    (interactive (list (read-file-name "Filename: " nil nil nil (buffer-file-name))))
+    (setq window (or window (selected-window)))
+    (setq filename (or filename (buffer-file-name (window-buffer window)) (format "%s" (window-buffer window))))
+    (let* ((frame (window-frame window))
+           (pwd (or (getenv "PWD" frame) abbreviated-home-dir))
+           (str (abbreviate-file-name (replace-regexp-in-string (concat "^" pwd "/*") "" filename))))
+      (if (called-interactively-p 'interactive) (message str) str)))
+
+  (defun evil-frame-buffers (&optional window)
+    "Return String Representation of Frame Buffers in WINDOW"
+    (interactive)
+    (setq window (or window (selected-window)))
+    (let* ((frame (window-frame window))
+           (buffer (window-buffer window))
+           (frame-buffers (frame-parameter frame 'evil-frame-buffers))
+           (get-relative-file (lambda (b) (relative-file-name (format "%s" (or (buffer-file-name b) b)) window)))
+           (prev (string-join (mapcar get-relative-file (reverse (prev-evil-frame-buffers window))) "   "))
+           (next (string-join (mapcar get-relative-file          (next-evil-frame-buffers window))  "   "))
+           (str ""))
+      (when (string< "" prev) (setq str (concat prev "   ")))
+      (setq str (concat str (format "[%s]" (apply get-relative-file (list buffer)))))
+      (when (string< "" next) (setq str (concat str "   " next)))
+      (if (called-interactively-p 'interactive) (message str) str)
+  ))
 
 ;  (message "CURRENT PREFIX ARG: %s" current-prefix-arg)
 ;  (message "EVIL EX RANGE: %s" evil-ex-range)
@@ -383,6 +409,7 @@
         (evil-window-top-left)
     )))
 
+  (evil-ex-define-cmd "args" 'evil-frame-buffers)
   (evil-ex-define-cmd "fir[st]" 'evil-nth-buffer)
   (evil-ex-define-cmd "la[st]" 'evil-nth-last-buffer)
   (evil-ex-define-cmd "argu[ment]" 'evil-nth-buffer)
