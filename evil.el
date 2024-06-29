@@ -697,29 +697,20 @@
                     (dolist (buf (frame-parameter frame 'evil-frame-buffers))
                       (setq others (cons buf others)))))
 
-(debug-log        (format "EVIL-QUIT: OTHERS (%s)" others))
                 (dolist (buf (frame-parameter nil 'evil-frame-buffers))
-(debug-log        (format "EVIL-QUIT: TESTING (%s) vs. (%s)" buf others))
                   (when (not (memq buf others))
-(debug-log        (format "EVIL-QUIT: DELETING OTHERS (%s)" buf))
                     (kill-buffer buf))))
 
-(debug-log        (format "EVIL-QUIT: DELETING FRAME %s" (selected-frame)))
-              (delete-frame))
-(debug-log        (format "EVIL-QUIT: DELETED  FRAME"))
-)
+              (delete-frame)
+            )
 
           (error
-           (condition-case nil
-(progn (debug-log (format "EVIL-QUIT: DELETING TAB..."))
+           (if (> 1 (length (tab-bar-tabs)))
                (tab-bar-close-tab)
-(debug-log        (format "EVIL-QUIT: DELETED  TAB")))
-             (error
-              (if force
-(progn (debug-log (format "EVIL-QUIT: KILLING EMACS..."))
-                  (kill-emacs)
-(debug-log        (format "EVIL-QUIT: KILLED EMACS")))
-                (save-buffers-kill-emacs)))))))))
+;             (if force
+;                 (kill-emacs)
+;               (save-buffers-kill-emacs))
+           ))))))
 
   (evil-define-command evil-quit-all (&optional bang)
     "Close all evil-frame-buffers in the current frame."
