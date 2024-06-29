@@ -621,71 +621,45 @@
     (kbd "TAB") (lookup-key Info-mode-map (kbd "TAB")))
 
 
- (advice-add 'delete-window :before #'evil-frame-buffers-delete-window-before)
- (defun evil-frame-buffers-delete-window-before (&rest args)
- (debug-log (format "DELETE-WINDOW-BEFORE(%s) => (%s / %s) [%s] <%s>" args (selected-window) (get-buffer-window-list (current-buffer) nil t) (frame-first-window) (frame-parameter (selected-frame) 'evil-frame-buffers)))
- )
-
- (advice-add 'delete-window :after #'evil-frame-buffers-delete-window-after)
- (defun evil-frame-buffers-delete-window-after (&rest args)
- (debug-log (format "DELETE-WINDOW-AFTER(%s) => (%s / %s) [%s] <%s>" args (selected-window) (get-buffer-window-list (current-buffer) nil t) (frame-first-window) (frame-parameter (selected-frame) 'evil-frame-buffers)))
- )
-
- ;(defadvice delete-window (around delete-frame-if-one-win activate)
- ;  "If WINDOW is the only one in its frame, then `delete-frame` too."
- ;  (if (fboundp 'with-selected-window)   ; Emacs 22+
- ;(progn (emacs-log (format "NEW DELETE WINDOW(%s) => (%s)" (selected-window) (frame-parameter (selected-frame) 'evil-frame-buffers)))
- ;      (with-selected-window
- ;          (or (ad-get-arg 0)  (selected-window))
- ;        (if (one-window-p t) (delete-frame) ad-do-it))
- ;)
- ;(emacs-log (format "OLD DELETE WINDOW(%s) => (%s)" (selected-window) (frame-parameter (selected-frame) 'evil-frame-buffers)))
- ;    (save-current-buffer
- ;      (select-window (or (ad-get-arg 0)  (selected-window)))
- ;      (if (one-window-p t) (delete-frame) ad-do-it))))
- ;
- (advice-add 'evil-delete-buffer :before #'evil-frame-buffers-evil-delete-buffer-before)
- (defun evil-frame-buffers-evil-delete-buffer-before (&rest args)
- (debug-log (format "EVIL-DELETE-BUFFER-BEFORE(%s) => (%s / %s) <%s>" args (selected-window) (get-buffer-window-list (current-buffer) nil t) (frame-parameter (selected-frame) 'evil-frame-buffers)))
- )
-
- (advice-add 'evil-delete-buffer :after #'evil-frame-buffers-evil-delete-buffer-after)
- (defun evil-frame-buffers-evil-delete-buffer-after (&rest args)
- (debug-log (format "EVIL-DELETE-BUFFER-AFTER(%s) => (%s / %s) <%s>" args (selected-window) (get-buffer-window-list (current-buffer) nil t) (frame-parameter (selected-frame) 'evil-frame-buffers)))
- )
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  Make `:bd` Remove Current Buffer From 'evil-frame-buffers  ;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (advice-add 'kill-buffer :before #'evil-frame-buffers-kill-buffer-before)
-  (defun evil-frame-buffers-kill-buffer-before (&rest args)
-    (when (not (car args))
-      (let ((frame-buffers (frame-parameter nil 'evil-frame-buffers)))
-(debug-log (format "KILL-BUFFER-BEFORE(%s -- %s) => (%s)" args (window-buffer) frame-buffers))
-(debug-log (format "KILL-BUFFER-BEFORE(NEXT) => (%s)" (next-evil-frame-buffers)))
-(debug-log (format "KILL-BUFFER-BEFORE(PREV) => (%s)" (prev-evil-frame-buffers)))
-        (set-frame-parameter nil 'evil-frame-buffers (remove (window-buffer) frame-buffers))
-      )))
+  (advice-add 'kill-buffer :around #'evil-frame-buffers-kill-buffer-around)
+  (defun evil-frame-buffers-kill-buffer-around (orig &rest args)
+    (let* ((buffer (or (car args) (current-buffer)))
+           (wins (get-buffer-window-list buffer nil t)))
+      (mapc #'(lambda (w)
+                (condition-case nil
+                    (let ((frame-buffers (frame-parameter (window-frame w) 'evil-frame-buffers)))
+                      ;;; Calculate the replacement buffer...
+                      (if (next-evil-frame-buffers w)
+                          (set-window-buffer w (car (next-evil-frame-buffers w)))
+                        (if (prev-evil-frame-buffers w)
+                            (set-window-buffer w (car (reverse (prev-evil-frame-buffers w))))
+                          (set-window-buffer w (car frame-buffers)))))
+                  (error nil)))
+      wins)
 
-  ;;; ... and delete the frame, if it's the last one.
+      ;;; Remove buffer from each frame's buffer list...
+      (mapc #'(lambda (w)
+                (condition-case nil
+                    (let ((frame-buffers (frame-parameter (window-frame w) 'evil-frame-buffers)))
+                      (set-frame-parameter (window-frame w) 'evil-frame-buffers (remove buffer frame-buffers)))
+                  (error nil)))
+      wins)
 
-  (advice-add 'kill-buffer :after #'evil-frame-buffers-kill-buffer-after)
-  (defun evil-frame-buffers-kill-buffer-after (&rest args)
-    (when (not (car args))
-      (let ((frame-buffers (frame-parameter nil 'evil-frame-buffers)))
-(debug-log (format "KILL-BUFFER-AFTER(%s -- %s) => (%s)" args (window-buffer) frame-buffers))
-(debug-log (format "KILL-BUFFER-AFTER(NEXT) => (%s)" (next-evil-frame-buffers)))
-(debug-log (format "KILL-BUFFER-AFTER(PREV) => (%s)" (prev-evil-frame-buffers)))
-        (if (not frame-buffers)
-            (delete-frame)
-          (if (next-evil-frame-buffers)
-              (switch-to-buffer (car (next-evil-frame-buffers)))
-            (if (prev-evil-frame-buffers)
-                (switch-to-buffer (car (reverse (prev-evil-frame-buffers))))
-              (switch-to-buffer (car frame-buffers))
-            ))))))
+      (apply orig args)
 
+      ;;; ... and delete the frame, if it's the last one.
+      (mapc #'(lambda (w)
+                (condition-case nil
+                    (let ((frame-buffers (frame-parameter (window-frame w) 'evil-frame-buffers)))
+                      (when (not frame-buffers)
+                        (delete-frame (window-frame w))))
+                  (error nil)))
+      wins)
+  ))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  Make `:q` only quit *THIS* `emacsclient` window/buffer/frame  ;;;
