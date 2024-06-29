@@ -719,6 +719,16 @@
     (dolist (buf (frame-parameter nil 'evil-frame-buffers))
       (with-current-buffer buf (evil-quit bang))))
 
+  (evil-define-command evil-quit-emacs (&optional force)
+    "Kill Emacs (Like \"C-x C-c\")"
+    :repeat nil
+    (interactive "<!>")
+    (if force
+        (kill-emacs)
+      (save-buffers-kill-emacs)
+    ))
+
+  (evil-ex-define-cmd "qq[uit]" 'evil-quit-emacs)
 
   ;;; From `https://github.com/DabeDotCom/evil` => `search-wrap-ring-bell--ex`
   (defun evil-ex-search (&optional count)
