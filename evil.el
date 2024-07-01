@@ -761,8 +761,17 @@
     "Close all evil-frame-buffers in the current frame."
     :repeat nil
     (interactive "<!>")
-    (dolist (buf (frame-parameter nil 'evil-frame-buffers))
-      (with-current-buffer buf (evil-quit bang))))
+    (let ((frame (selected-frame)))
+      (dolist (buf (frame-parameter frame 'evil-frame-buffers))
+        (with-current-buffer buf (evil-quit bang)))
+      (when (frame-live-p frame)
+        (dolist (window (window-list frame))
+          (with-current-buffer (window-buffer window)
+            (evil-quit bang))
+        )
+      )
+    )
+  )
 
   (evil-define-command evil-quit-emacs (&optional force)
     "Kill Emacs (Like \"C-x C-c\")"
