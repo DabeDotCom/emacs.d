@@ -421,12 +421,12 @@
   (evil-ex-define-cmd "sall" 'evil-split-all-buffers)
 
 
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;  ":be" (erase-buffer) == delete-window and remove from evil-frame-buffers, but don't ":bd" globally  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;  ":brm" (remove-buffer) == delete-window and remove from current frame buffers, but don't ":bd" globally  ;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (evil-define-command evil-ex-erase-buffer (buffer &optional bang)
-    "Remove a buffer from the current frame's 'evil-frame-buffers list."
+  (evil-define-command evil-remove-buffer (buffer &optional bang)
+    "Remove a buffer from the current frame's 'evil-frame-buffers list and delete window."
     (interactive "<b><!>")
     (let ((buffer (or buffer (current-buffer)))
           (frame-buffers (frame-parameter nil 'evil-frame-buffers)))
@@ -452,7 +452,8 @@
                   (switch-to-buffer (car frame-buffers))
                 ))))))))
 
-  (evil-ex-define-cmd "be[rase]" 'evil-ex-erase-buffer)
+  (evil-ex-define-cmd "br[emove]" 'evil-remove-buffer)
+  (evil-ex-define-cmd "brm"       'evil-remove-buffer)
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
