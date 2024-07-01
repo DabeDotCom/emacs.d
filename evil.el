@@ -716,48 +716,46 @@
     "Close the current window, current frame, current tab, Emacs."
     :repeat nil
     (interactive "<!>")
-    (condition-case err
-(progn (debug-log (format "EVIL-QUIT: DELETING WINDOW %s FROM %s on %s <%s>" (selected-window) (selected-frame) (frame-parameter nil 'tty) (frame-parameter nil 'evil-frame-buffers)))
+    (let ((current-frame (selected-frame)))
+      (condition-case err
           (delete-window)
-(debug-log        (format "EVIL-QUIT: DELETED  WINDOW")))
 
-      (error
-        (condition-case nil
-(progn (debug-log (format "EVIL-QUIT: FINAL WINDOW %s on %s <%s> -- %s" (selected-frame) (frame-parameter nil 'tty) (frame-parameter nil 'evil-frame-buffers) err))
-            (progn
-              ;;; If we want a list of which other frames our buffer(s) are in...
-              ; (dolist (buf (frame-parameter nil 'evil-frame-buffers))
-              ;   (let (others)
-              ;     (dolist (frame (frame-list))
-              ;       (when (not (equal frame (selected-frame)))
-              ;         (when (memq buf (frame-parameter frame 'evil-frame-buffers))
-              ;           (setq others (cons frame others)))))
-              ;
-              ;     (dolist (frame others)
-              ;       (emacs-log (format "EVIL-QUIT: WINDOW %s IN OTHER %s on %s <%s>" buf frame (frame-parameter frame 'tty) (frame-parameter frame 'evil-frame-buffers))))
-              ;   ))
+        (error
+          (condition-case err
+              (progn
+                ;;; If we want a list of which other frames our buffer(s) are in...
+                ; (dolist (buf (frame-parameter nil 'evil-frame-buffers))
+                ;   (let (others)
+                ;     (dolist (frame (frame-list))
+                ;       (when (not (equal frame (selected-frame)))
+                ;         (when (memq buf (frame-parameter frame 'evil-frame-buffers))
+                ;           (setq others (cons frame others)))))
+                ;
+                ;     (dolist (frame others)
+                ;       (emacs-log (format "EVIL-QUIT: WINDOW %s IN OTHER %s on %s <%s>" buf frame (frame-parameter frame 'tty) (frame-parameter frame 'evil-frame-buffers))))
+                ;   ))
 
-              ;;; If we just want to know whether or not it's elsewhere...
-              (let (others)
-                (dolist (frame (frame-list))
-                  (when (not (equal frame (selected-frame)))
-                    (dolist (buf (frame-parameter frame 'evil-frame-buffers))
-                      (setq others (cons buf others)))))
+                ;;; If we just want to know whether or not it's elsewhere...
+                (let (others)
+                  (dolist (frame (frame-list))
+                    (when (not (equal frame (selected-frame)))
+                      (dolist (buf (frame-parameter frame 'evil-frame-buffers))
+                        (setq others (cons buf others)))))
 
-                (dolist (buf (frame-parameter nil 'evil-frame-buffers))
-                  (when (not (memq buf others))
-                    (kill-buffer buf))))
+                  (dolist (buf (frame-parameter nil 'evil-frame-buffers))
+                    (when (not (memq buf others))
+                      (kill-buffer buf))))
 
-              (delete-frame)
-            )
+                (if (frame-live-p current-frame)
+                    (delete-frame current-frame)
+              ))
 
-          (error
-           (if (> 1 (length (tab-bar-tabs)))
-               (tab-bar-close-tab)
-;             (if force
-;                 (kill-emacs)
-;               (save-buffers-kill-emacs))
-           ))))))
+            (error
+             (if (> 1 (length (tab-bar-tabs)))
+                 (tab-bar-close-tab)
+               (if (frame-parameter current-frame 'client)
+                   (server-delete-client (frame-parameter current-frame 'client))
+               ))))))))
 
   (evil-define-command evil-quit-all (&optional bang)
     "Close all evil-frame-buffers in the current frame."
