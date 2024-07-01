@@ -455,6 +455,52 @@
   (evil-ex-define-cmd "br[emove]" 'evil-remove-buffer)
   (evil-ex-define-cmd "brm"       'evil-remove-buffer)
 
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;  ":be" (erase-buffer) == kill-buffer and remove from frame buffers, but don't delete windows  ;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  (evil-define-command evil-erase-buffer (buffer &optional bang)
+    "Kill a buffer and remove from frame buffers, but don't delete its window(s)."
+    (interactive "<b><!>")
+    (with-current-buffer (or buffer (current-buffer))
+      (when bang
+        (set-buffer-modified-p nil)
+        (dolist (process (process-list))
+          (when (eq (process-buffer process) (current-buffer))
+            (set-process-query-on-exit-flag process nil))))
+      ;; get all windows that show this buffer
+      (let ((wins (get-buffer-window-list (current-buffer) nil t)))
+        (mapc #'(lambda (w)
+                  (condition-case nil
+                      (let ((frame-buffers (frame-parameter (window-frame w) 'evil-frame-buffers)))
+                        (if (next-evil-frame-buffers w)
+                            (set-window-parameter w 'evil-frame-buffer-other (car (next-evil-frame-buffers w)))
+                          (if (prev-evil-frame-buffers w)
+                              (set-window-parameter w 'evil-frame-buffer-other (car (reverse (prev-evil-frame-buffers w))))
+                            (set-window-parameter w 'evil-frame-buffer-other (car frame-buffers))
+                            )))
+                    (error nil)))
+              wins)
+        ;; if the buffer which was initiated by emacsclient,
+        ;; call `server-edit' from server.el to avoid
+        ;; "Buffer still has clients" message
+        (if (and (fboundp 'server-edit)
+                 (boundp 'server-buffer-clients)
+                 server-buffer-clients)
+            (server-edit)
+          (kill-buffer nil)
+        )
+        ;; update all windows that showed this buffer
+        (mapc #'(lambda (w)
+                  (condition-case nil
+                      (let* ((frame-buffers (frame-parameter (window-frame w) 'evil-frame-buffers)))
+                        (when (window-parameter w 'evil-frame-buffer-other)
+                            (set-window-buffer w (window-parameter w 'evil-frame-buffer-other))
+                            (set-window-parameter w 'evil-frame-buffer-other nil)))
+                    (error nil)))
+              wins))))
+
+  (evil-ex-define-cmd "be[rase]" 'evil-erase-buffer)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  Make `^L` in "*Messages*" clear the buffer  ;;;
