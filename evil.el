@@ -631,9 +631,9 @@
   (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
 
 
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;  Fix Emacs Movement Keys In The Completion Minibuffer  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;  Fix Emacs Movement Keys In The Completion/Search/Eval Minibuffer(s)  ;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   (evil-define-operator evil-backward-delete-args (beg end type register yank-handler)
     :motion evil-forward-char
@@ -648,13 +648,16 @@
         (evil-delete (point) beg type register yank-handler)
       (evil-delete-whole-line 2 end type register yank-handler)))
 
-  (define-key evil-ex-completion-map "\C-a" 'move-beginning-of-line)
-  (define-key evil-ex-completion-map "\C-b" 'evil-backward-char)
-  (define-key evil-ex-completion-map "\C-d" 'evil-delete-char)
-  (define-key evil-ex-completion-map "\C-f" 'evil-forward-char)
-  (define-key evil-ex-completion-map "\C-k" 'evil-delete-line)
-  (define-key evil-ex-completion-map "\C-u" 'evil-backward-delete-args)
-
+  (dolist (map (list evil-ex-completion-map evil-ex-search-keymap evil-eval-map))
+    ; Silence "[Beginning of buffer]" error
+    (define-key map "\C-b" (lambda () (interactive) (evil-backward-char 1 nil t)))
+    ; Allow ^F to extend past last character
+    (define-key map "\C-f" (lambda () (interactive) (let ((evil-move-beyond-eol t)) (evil-forward-char 1 nil t))))
+    (define-key map "\C-a" 'move-beginning-of-line)
+    (define-key map "\C-d" 'evil-delete-char)
+    (define-key map "\C-f" 'evil-forward-char)
+    (define-key map "\C-k" 'evil-delete-line)
+  )
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  Override Custom Face Colors  ;;;
