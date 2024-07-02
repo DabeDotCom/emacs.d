@@ -29,18 +29,18 @@
   ;;; https://emacs.stackexchange.com/questions/74289/emacs-28-2-error-in-macos-ventura-image-type-invalid-image-type-svg
   (add-to-list 'image-types 'svg)
 
-  (defun emacs-log (msg)
+  (defun emacs-log (&rest msg)
     (interactive "s")
     (let ((save-silently t)
           (message-log-max nil))
       (append-to-file
-       (format "[%s @ %s] %s\n" (format-time-string "%Y-%m-%d %H:%M:%S.%06N") (selected-frame) msg) nil
+       (format "[%s @ %s] %s\n" (format-time-string "%Y-%m-%d %H:%M:%S.%06N") (selected-frame) (apply 'format msg)) nil
        (format "%s/%s" (getenv "HOME" (selected-frame)) "Library/Logs/emacs.log"))))
 
-  (defun debug-log (msg)
+  (defun debug-log (&rest msg)
     "Call `emacs-log` only if 'emacs-debug-p is set"
     (interactive "s")
-    (if (and (boundp 'emacs-debug-p) emacs-debug-p) (emacs-log msg)))
+    (if (and (boundp 'emacs-debug-p) emacs-debug-p) (apply 'emacs-log msg)))
 
   ;;; Silence `Loading...` Startup Messages
   (defun load-file (file &optional noerror nomessage)
