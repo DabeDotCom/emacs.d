@@ -60,7 +60,7 @@
   (defun resume-tty-redraw-frame (tty)
     (send-string-to-terminal "\e[H\e[2J" tty)
     (dolist (frame (frames-on-display-list tty))
-;(emacs-log (format "RESUME-TTY FRAME %s TTY %s -- REDRAW" frame tty))
+(debug-log "RESUME-TTY FRAME %s TTY %s -- REDRAW" frame tty)
       (redraw-frame frame)))
 
   (add-hook 'resume-tty-functions 'resume-tty-redraw-frame)
@@ -106,7 +106,7 @@
   (defun evil-cli-cmds () (cadr (evil-cli-args-lists)))
 
   (defun init-evil-cli-args ()
-;(emacs-log (format "INIT EVIL-CLI-ARGS (%s)" (frame-parameter nil 'evil-cli-args)))
+(debug-log "INIT EVIL-CLI-ARGS (%s)" (frame-parameter nil 'evil-cli-args))
     (pcase-let ((`(,bufs ,cmds) (evil-cli-args-lists)))
       (set-evil-frame-buffers bufs)
       (when bufs (switch-to-buffer (car bufs)))
@@ -131,7 +131,7 @@
 
   (defun update-evil-frame-buffers ()
     (when (not (active-minibuffer-window))   ;;; Throttle `buffer-list-update-hook`
-;(emacs-log (format "UPDATE-EVIL-FRAME-BUFFERS(%s) => <%s>" (selected-frame) (frame-parameter (selected-frame) 'evil-frame-buffers)))
+(debug-log "UPDATE-EVIL-FRAME-BUFFERS(%s) => <%s>" (selected-frame) (frame-parameter (selected-frame) 'evil-frame-buffers))
 
       ;;; Select "Live" Buffers From 'evil-frame-buffers List
       (let ((l (seq-filter 'buffer-live-p (frame-parameter (selected-frame) 'evil-frame-buffers))))
@@ -145,14 +145,14 @@
 
         ;;; Persist Changes Back To 'evil-frame-buffers Frame Parameter
         (when (not (equal (frame-parameter (selected-frame) 'evil-frame-buffers) l))
-;(emacs-log (format "SETTING evil-frame-buffers %s TO %s" (selected-frame) l))
+(debug-log "SETTING evil-frame-buffers %s TO %s" (selected-frame) l)
           (set-frame-parameter (selected-frame) 'evil-frame-buffers l)))))
 
  ;(add-hook 'buffer-list-update-hook 'update-evil-frame-buffers)
   (add-hook 'window-configuration-change-hook 'update-evil-frame-buffers)
 
 ; (defun evil-frame-buffers-select-window-advice (&rest args)
-;    (emacs-log (format "EVIL-SELECT-WINDOW[%s]:  BUFFER=(%s)  FRAME=(%s)" args (window-buffer) (window-frame))))
+;    (debug-log "EVIL-SELECT-WINDOW[%s]:  BUFFER=(%s)  FRAME=(%s)" args (window-buffer) (window-frame)))
 ; (advice-add 'select-window    :after #'evil-frame-buffers-select-window-advice)
 
   (advice-add 'switch-to-buffer :after #'evil-frame-buffers-switch-to-buffer-advice)
@@ -161,15 +161,15 @@
       (when (and (not (buffer-file-name nil))
                  frame-buffers
                  (not (memq (window-buffer) frame-buffers)))
-(progn (debug-log (format "EVIL-SWITCH-TO-BUFFER:  ADDING \"%s\" => (%s)" (window-buffer) frame-buffers))
+(progn (debug-log "EVIL-SWITCH-TO-BUFFER:  ADDING \"%s\" => (%s)" (window-buffer) frame-buffers)
         (set-frame-parameter nil 'evil-frame-buffers (append frame-buffers (list (window-buffer))))
-)
+(       debug-log "EVIL-SWITCH-TO-BUFFER:  ADDED \"%s\" => (%s)" (window-buffer) (frame-parameter nil 'evil-frame-buffers)))
       )))
 
   (advice-add 'find-file :after #'evil-frame-buffers-find-file-after)
   (defun evil-frame-buffers-find-file-after (&rest args)
     (let ((frame-buffers (frame-parameter nil 'evil-frame-buffers)))
-;(debug-log (format "FIND-FILE-AFTER(%s -- %s) => (%s)" args (window-buffer) frame-buffers))
+(debug-log "FIND-FILE-AFTER(%s -- %s) => (%s)" args (window-buffer) frame-buffers)
       (set-frame-parameter nil 'evil-frame-buffers (append frame-buffers (list (window-buffer))))
     )
   )
@@ -179,7 +179,7 @@
     (let ((frame-buffers (frame-parameter nil 'evil-frame-buffers)))
 
       ;;; Remove Current Buffer From 'evil-frame-buffers
-(debug-log (format "EVIL-BURY-BUFFER:  REMOVING \"%s\" => (%s)" (window-buffer) frame-buffers))
+(debug-log "EVIL-BURY-BUFFER:  REMOVING \"%s\" => (%s)" (window-buffer) frame-buffers)
       (set-frame-parameter nil 'evil-frame-buffers (remove (window-buffer) frame-buffers))
 
       ;;; Call Original 'bury-buffer
@@ -208,7 +208,7 @@
            l)
       (catch 'done
         (dolist (b (seq-filter 'buffer-live-p frame-buffers))
-;(debug-log (format "PREV-EVIL-FRAME-BUFFERS:  SEARCHING %s FOR \"%s\" == \"%s\" <%s>" frame buffer b frame-buffers))
+(debug-log "PREV-EVIL-FRAME-BUFFERS:  SEARCHING %s FOR \"%s\" == \"%s\" <%s>" frame buffer b frame-buffers)
           (when (equal b buffer) (throw 'done l))
           (setq l (cons b l))))
       l))
@@ -223,7 +223,7 @@
            l)
       (catch 'done
         (dolist (b (reverse (seq-filter 'buffer-live-p frame-buffers)))
-;(debug-log (format "NEXT-EVIL-FRAME-BUFFERS:  SEARCHING %s FOR \"%s\" == \"%s\" <%s>" frame buffer b frame-buffers))
+(debug-log "NEXT-EVIL-FRAME-BUFFERS:  SEARCHING %s FOR \"%s\" == \"%s\" <%s>" frame buffer b frame-buffers)
           (when (equal b buffer) (throw 'done l))
           (setq l (cons b l))))
       l))
@@ -366,7 +366,7 @@
     (setq count (or count 1))
     (let ((b (nth-prev-evil-frame-buffer count)))
       (when b
-(debug-log (format "EVIL-PREV-BUFFER:  SWITCHING TO #%s: \"%s\"" count b))
+(debug-log "EVIL-PREV-BUFFER:  SWITCHING TO #%s: \"%s\"" count b)
         (switch-to-buffer b))))
 
   (evil-define-command evil-next-buffer (&optional count)
@@ -375,7 +375,7 @@
     (setq count (or count 1))
     (let ((b (nth-next-evil-frame-buffer count)))
       (when b
-(debug-log (format "EVIL-PREV-BUFFER:  SWITCHING TO #%s: \"%s\"" count b))
+(debug-log "EVIL-NEXT-BUFFER:  SWITCHING TO #%s: \"%s\"" count b)
         (switch-to-buffer b))))
 
   (evil-define-command evil-split-prev-buffer (&optional count)
@@ -748,7 +748,7 @@
                 ;           (setq others (cons frame others)))))
                 ;
                 ;     (dolist (frame others)
-                ;       (emacs-log (format "EVIL-QUIT: WINDOW %s IN OTHER %s on %s <%s>" buf frame (frame-parameter frame 'tty) (frame-parameter frame 'evil-frame-buffers))))
+                ;       (debug-log "EVIL-QUIT: WINDOW %s IN OTHER %s on %s <%s>" buf frame (frame-parameter frame 'tty) (frame-parameter frame 'evil-frame-buffers)))
                 ;   ))
 
                 ;;; If we just want to know whether or not it's elsewhere...
