@@ -14,6 +14,7 @@
   (evil-set-undo-system 'undo-redo)
   (setq evil-search-wrap-ring-bell t)
   (setq evil-numbers-pad-default t)
+  (setq evil-ex-search-vim-style-regexp t)
 
   (customize-set-variable 'evil-auto-indent nil)
   (customize-set-variable 'evil-undo-system 'undo-redo)
