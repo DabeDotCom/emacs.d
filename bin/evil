@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+function evil() (
+  local _stty; _stty="$(stty -g 2>/dev/null)"
+  # shellcheck disable=SC2071    # > is for string comparisons. Use -gt instead.
+  if type -P emacsclient >/dev/null 2>&1 \
+   && version="$(command emacsclient --version)" \
+   && [[ "${version##* }" > 27 ]]; then
+     local cli_args; cli_args="${*+"$(printf "\"%q\" " ${@+"$@"})"}"
+     command emacsclient -nw -a "" --frame-parameters "((evil-cli-args . (${cli_args//\\ / })))"
+
+  elif type -P vim >/dev/null 2>&1; then
+     command vim "$@"
+
+  elif type -P vi >/dev/null 2>&1; then
+     command vi "$@"
+
+  else
+     echo "Can't find 'emacsclient', 'vim', or 'vi'...  Giving up" >&2; return 1
+  fi
+
+  local rc="$?"; [[ -z $_stty ]] || stty "$_stty"; return "${rc:-0}"
+
+  true || super emacs -Q -nw -l server --eval "
+     ; (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
+     ;        (server-file (expand-file-name \"server\" server-dir)))
+     ;   (unless (file-exists-p server-file) (kill-emacs 1))
+
+     (defun println (&rest args) (princ (string-join (flatten-tree (list args \"\n\" )) \" \")))
+
+     ;(setq user-init-file \"~/.emacs\")
+     ;(message \"LOADING USER-INIT-FILE %s\" user-init-file)
+     ;(load user-init-file nil t)
+
+     (setq command-line-args command-line-args-left)
+     (println \"COMMAND-LINE-ARGS\" command-line-args)
+     (setq command-line-args ())
+     (println \"COMMAND-LINE-ARGS\" command-line-args)
+     (kill-emacs 0)
+     )" -l ~/.emacs -- ~/.bashrc | nl
+)
+
+[[ ${__LOAD_ONLY:-0} -ge 1 ]] || evil "$@"
