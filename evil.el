@@ -598,8 +598,15 @@
   ;;;  Don't recenter when jumping around  ;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (setq scroll-conservatively most-positive-fixnum)
+  ;;; NOTE: This still isn't perfect...  I *WANT* it to recenter when
+  ;;;       the next match is more than (half) a screenful away...
+  ;;;(setq scroll-conservatively most-positive-fixnum)
 
+  (defun update-scroll-conservatively-size ()
+    (when (not (active-minibuffer-window))   ;;; Throttle `window-state-change-hook`
+      (setq scroll-conservatively (/ (window-height) 2))))
+
+  (add-hook 'window-state-change-hook 'update-scroll-conservatively-size)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  I don't want 'evil-emacs-state at *ALL*  ;;;
