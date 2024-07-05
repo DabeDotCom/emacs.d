@@ -107,13 +107,30 @@
  '(tooltip ((t (:background "lightyellow" :foreground "black"))))
  '(trailing-whitespace ((t (:background "red"))))
  '(underline ((t (:underline t))))
+ '(sh-quoted-exec ((t (:foreground "#bc93b6"))))
+
+;'(whitespace-tab ((t (:inherit leading-tab-face)))
+ '(whitespace-tab ((((background dark))  :background "#330000" :foreground "#FFCCCC")
+                   (((background light)) :background "#FFF0F0" :foreground "#663333")))
+ '(whitespace-space-before-tab ((((background dark))  :background "#660000" :foreground "#FFFF00")
+                                (((background light)) :background "#FFCC00" :foreground "#663300")))
 
  '(widget-button-face ((t (:weight bold))))
  '(widget-button-pressed-face ((t (:foreground "red"))))
  '(widget-documentation-face ((t (:foreground "dark green"))))
  '(widget-field-face ((t (:background "gray85"))))
  '(widget-inactive-face ((t (:foreground "dim gray"))))
- '(widget-single-line-field-face ((t (:background "gray85")))))
+ '(widget-single-line-field-face ((t (:background "gray85"))))
+
+ '(evil-ex-isearch ((t (:background "#cfc" :foreground "#000"))))
+ '(evil-ex-lazy-highlight ((t (:background "#999" :foreground "#000"))))
+ '(evil-ex-search ((t (:background "#c0c" :foreground "#000"))))
+ '(evil-ex-info ((t (:foreground "#ffd7d7"))))
+
+ '(smerge-markers ((t (:foreground "#6CC"))))
+ '(smerge-upper ((t (:foreground "#C60"))))
+ '(smerge-lower ((t (:foreground "#0C6"))))
+)
 
 ;;;###autoload
 (when load-file-name
@@ -124,3 +141,25 @@
 
 ;;; vim-colors-theme.el ends here
 
+; Make sure the highlighting doesn't extend beyond the end of line (copy/paste bug)
+; See: https://emacs.stackexchange.com/a/46813
+;
+; NOTE: It doesn't work for non-fontified trailing whitespace, though...
+;
+(add-hook 'evil-local-mode-hook (lambda() (font-lock-add-keywords nil '(("\n" . (0 nil t))) t)))
+
+(setq frame-background-mode (pcase (upcase (or (getenv "CUR_BG" (selected-frame)) ""))
+                              ("#FFFFFF" 'light)
+                              ("#000000" 'dark)
+                              (_         'dark)
+                              ))
+
+(if (not (getenv "PWD" (selected-frame)))
+    (progn
+      (setq frame-background-mode 'dark)
+      (add-to-list 'default-frame-alist '(background-color . "black"))
+      (add-to-list 'default-frame-alist '(foreground-color . "white"))
+
+      (set-face-attribute 'default nil
+                          :background "black"
+                          :foreground "white")))
