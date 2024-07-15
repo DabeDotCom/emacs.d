@@ -541,6 +541,15 @@
   (define-key evil-normal-state-map (kbd "C-w 2") 'split-window-below)
   (define-key evil-normal-state-map (kbd "C-w b") 'switch-to-buffer)
 
+  (evil-define-command evil-maximize-window-height ()
+    "Maximize the height of the current window"
+    (evil-window-set-height nil))
+
+  (evil-define-command evil-minimize-window-height ()
+    "Minimize the height of the current window"
+    (let ((window-combination-resize nil))
+      (evil-window-set-height 3)))
+
   (evil-define-command evil-maximize-window-next (count)
     "Maximize the height of the COUNT'th next window"
     (interactive "<c>")
@@ -560,7 +569,8 @@
   (define-key evil-normal-state-map (kbd "C-w C-i") 'evil-maximize-window-next)
   (define-key evil-normal-state-map (kbd "C-w }") 'evil-maximize-window-next)
   (define-key evil-normal-state-map (kbd "C-w {") 'evil-maximize-window-prev)
-  (define-key evil-normal-state-map (kbd "C-w .") 'evil-window-set-height)
+  (define-key evil-normal-state-map (kbd "C-w .") 'evil-maximize-window-height)
+  (define-key evil-normal-state-map (kbd "C-w ,") 'evil-minimize-window-height)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  Make `_` a "word" character  ;;;
