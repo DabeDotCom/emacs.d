@@ -85,10 +85,11 @@
   (use-package mmm-mode :ensure t)
   (setq mmm-global-mode 'maybe)
   (setq mmm-mode-ext-classes-alist nil)
-  (add-to-list 'mmm-mode-ext-classes-alist '('sh-mode ".*" 'sh-here-doc))
-  (add-to-list 'mmm-mode-ext-classes-alist '('sh-script ".*" 'sh-here-doc))
+  (add-to-list 'mmm-mode-ext-classes-alist '('sh-mode nil 'sh-here-doc))
+  (add-to-list 'mmm-mode-ext-classes-alist '('sh-script nil 'sh-here-doc))
 
-  (setq mmm-here-doc-mode-alist '((".*PERL.*" . cperl-mode)))
+  (setq mmm-here-doc-mode-alist nil)
+  (add-to-list 'mmm-here-doc-mode-alist '("PERL" . cperl-mode))
 
   (use-package htmlize :ensure t)
   (use-package lsp-mode :ensure t)
