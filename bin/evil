@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 
-function evil() (
-  local _stty; _stty="$(stty -g 2>/dev/null)"
+### __END__ makes the shell stop reading from the file, even if it changes while being executed
+shopt -s expand_aliases; alias __END__='RC="$(( ${RC:-0} ? RC : $?))"; if [[ $- = *i* ]];
+  then (( ${#BASH_SOURCE[@]} >= ${__END_LEVEL:-1} + 0 )) && return ${RC:-0} || { trap "builtin exit 0" INT; kill -INT $(BASHPID); }
+  else (( ${#BASH_SOURCE[@]} >= ${__END_LEVEL:-1} + 1 )) && return ${RC:-0} || exit ${RC:-0}; fi'
+
+function evil() {
+  ### All this boilerplate (and `& wait $!` below) lets us gracefully clean up when we're killed
+  local _stty; _stty="$(stty -g 2>/dev/null)"; trap 'rc="$?"; trap - EXIT 1 2 3 15; [[ -z ${_stty:-} ]] ||
+        stty "$_stty"; if (( sig = rc & 128 ? rc & 127 : 0 )); then kill -$sig -$$; else exit "${rc:-0}"; fi' 0 1 2 3 15; (
+
   # shellcheck disable=SC2071    # > is for string comparisons. Use -gt instead.
   if type -P emacsclient >/dev/null 2>&1 \
    && version="$(command emacsclient --version)" \
@@ -18,6 +26,8 @@ function evil() (
   else
      echo "Can't find 'emacsclient', 'vim', or 'vi'...  Giving up" >&2; return 1
   fi
-)
 
-[[ ${__LOAD_ONLY:-0} -ge 1 ]] || evil "$@"
+) & wait $!; }
+
+### `__LOAD_ONLY=1 source evil` installs this script as a shell function without running it
+[[ ${__LOAD_ONLY:-0} -ge 1 ]] || evil "$@"; __END__;
