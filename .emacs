@@ -69,6 +69,7 @@
    '(dart-mode xclip lsp-mode htmlize prettier-js prettier prettier-mode mmm-mode perl-ts-mode markdown-mode tree-sitter use-package))
  '(safe-local-variable-values '((mmm-classes . sh-here-doc) (mmm-classes . here-doc)))
  '(tab-bar-close-last-tab-choice 'delete-frame)
+ '(vc-follow-symlinks nil)
  '(xterm-extra-capabilities nil))
   ;multi-vterm vterm
 
