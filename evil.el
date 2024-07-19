@@ -33,7 +33,7 @@
   (setq ring-bell-function
       (lambda ()
         (unless (memq this-command
-                      '(isearch-abort abort-recursive-edit exit-minibuffer keyboard-quit abort-minibuffers
+                      '(isearch-abort abort-recursive-edit exit-minibuffer keyboard-quit abort-minibuffers self-insert-command
                         evil-ex evil-find-char previous-line next-line evil-forward-char evil-backward-char evil-ex-delete-backward-char
                        ;evil-ex-search-next evil-ex-search-previous
                        ))
