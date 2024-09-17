@@ -16,6 +16,9 @@
   (setq evil-numbers-pad-default t)
   (setq evil-ex-search-vim-style-regexp t)
 
+  ;;; I have `set selection=exclusive` in my .vimrc
+  (setq evil-visual-char 'exclusive)
+
   (customize-set-variable 'evil-auto-indent nil)
   (customize-set-variable 'evil-undo-system 'undo-redo)
   (customize-set-variable 'completions-format 'vertical)
