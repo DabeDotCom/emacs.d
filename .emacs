@@ -148,6 +148,8 @@
 
   (add-to-list 'auto-mode-alist `(,(concat "^" abbreviated-home-dir "\\.bash[^/]*\\'") . sh-mode))
   (add-to-list 'auto-mode-alist '("\\.vue\\'" . javascript-mode))
+  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
 
   ;;; use cperl-mode instead of perl-mode
   ;;; http://xahlee.info/emacs/emacs/emacs_perl_vs_cperl_mode.html
