@@ -23,6 +23,7 @@
   (customize-set-variable 'evil-undo-system 'undo-redo)
   (customize-set-variable 'completions-format 'vertical)
   (customize-set-variable 'window-combination-resize t)
+  (customize-set-variable 'evil-jumps-cross-buffers nil)
 
   (load-theme 'vim-colors t t)
   (enable-theme 'vim-colors)
