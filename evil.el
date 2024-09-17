@@ -597,6 +597,35 @@
           (lambda ()
             (modify-syntax-entry ?_ "w")))
 
+  ;;; Slightly different from `vim`, which starts out case-sensitive by default...
+  ;;; I want `:set ic` to toggle 'evil-ex-search-case between "sensitive" <=> "smart"
+  (evil-define-command evil-set (cmd)
+    (interactive "<a>")
+    (let ((bang))
+      (when (string-match "^\\(.+?\\)\s*\\(!\\)?$" cmd)
+        (setq bang (equal (match-string 2 cmd) "!"))
+        (setq cmd (match-string 1 cmd)))
+
+      ;;; ":set ic" will toggle
+      ;;; ":set ic!" will force 'insensitve
+      ;;; ":set noic" will force 'sensitive
+      (cond
+       ((equal cmd "ic")
+        (setq evil-ex-search-case (if bang 'insensitive
+                                    (if (equal evil-ex-search-case 'sensitive) 'smart 'sensitive))))
+       ((equal cmd "noic")
+        (setq evil-ex-search-case 'sensitive)))
+
+      ;;; There *HAS* to be a less gross way to replace the middle element of this list
+      (setq evil-ex-search-pattern (list
+                                    (nth 0 evil-ex-search-pattern)
+                                    (not (not (memq evil-ex-search-case (list 'smart 'insensitive))))
+                                    (nth 2 evil-ex-search-pattern)))
+
+      ;;; Finally, we update our highlighting
+      (evil-ex-search-activate-highlight evil-ex-search-pattern)))
+  (evil-ex-define-cmd "set" 'evil-set)
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  Make `{` and `}` jump to blank lines  ;;;
