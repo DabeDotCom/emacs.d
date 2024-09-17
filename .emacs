@@ -183,7 +183,7 @@
 ;;; Possible values:
 ; face tabs spaces trailing lines space-before-tab newline indentation empty space-after-tab space-mark tab-mark newline-mark missing-newline-at-eof
 (require 'whitespace)
-(setq whitespace-style '(face tabs tab-mark space-before-tab))
+(setq whitespace-style '(face tabs tab-mark space-before-tab missing-newline-at-eof))
 (global-whitespace-mode 1)
 
 
