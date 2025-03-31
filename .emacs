@@ -85,6 +85,7 @@
 
   (use-package mmm-mode :ensure t)
   (setq mmm-global-mode 'maybe)
+  (setq mmm-submode-decoration-level 0)
   (setq mmm-mode-ext-classes-alist nil)
   (add-to-list 'mmm-mode-ext-classes-alist '('sh-mode nil 'sh-here-doc))
   (add-to-list 'mmm-mode-ext-classes-alist '('sh-script nil 'sh-here-doc))
