@@ -157,9 +157,9 @@
 (if (not (getenv "PWD" (selected-frame)))
     (progn
       (setq frame-background-mode 'dark)
-      (add-to-list 'default-frame-alist '(background-color . "black"))
-      (add-to-list 'default-frame-alist '(foreground-color . "white"))
+      (add-to-list 'default-frame-alist '(background-color . unspecified))
+      (add-to-list 'default-frame-alist '(foreground-color . unspecified))
 
       (set-face-attribute 'default nil
-                          :background "black"
-                          :foreground "white")))
+                          :background 'unspecified
+                          :foreground 'unspecified)))
