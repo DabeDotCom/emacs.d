@@ -1,0 +1,6 @@
+*.sw[a-z]
+elpa/
+.cache/
+.backups/
+.auto-save/
+auto-save-list/
