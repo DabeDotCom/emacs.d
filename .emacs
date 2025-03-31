@@ -152,6 +152,7 @@
   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.svelte\\'" . mhtml-mode))
 
   ;;; use cperl-mode instead of perl-mode
   ;;; http://xahlee.info/emacs/emacs/emacs_perl_vs_cperl_mode.html
