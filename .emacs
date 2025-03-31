@@ -149,6 +149,7 @@
 
   (add-to-list 'auto-mode-alist `(,(concat "^" abbreviated-home-dir "\\.bash[^/]*\\'") . sh-mode))
   (add-to-list 'auto-mode-alist '("\\.vue\\'" . javascript-mode))
+  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
 
