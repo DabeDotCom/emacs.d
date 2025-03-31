@@ -16,6 +16,8 @@
   (setq evil-numbers-pad-default t)
   (setq evil-ex-search-vim-style-regexp t)
 
+  (load-file (concat user-emacs-directory "vimish-fold.el") nil t)
+
   ;;; I have `set selection=exclusive` in my .vimrc
   (setq evil-visual-char 'exclusive)
 

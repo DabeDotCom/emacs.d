@@ -4,3 +4,4 @@ elpa/
 .backups/
 .auto-save/
 auto-save-list/
+.vimish-fold/
