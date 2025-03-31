@@ -570,6 +570,7 @@
       (evil-window-set-height nil)
       (evil-window-set-width nil))
 
+  (define-key evil-normal-state-map (kbd "C-w <backtab>") 'evil-maximize-window-prev)
   (define-key evil-normal-state-map (kbd "C-w C-i") 'evil-maximize-window-next)
   (define-key evil-normal-state-map (kbd "C-w }") 'evil-maximize-window-next)
   (define-key evil-normal-state-map (kbd "C-w {") 'evil-maximize-window-prev)
