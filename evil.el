@@ -1016,3 +1016,21 @@ otherwise they are skipped."
         (funcall evil-redo-function 1)
         (message "evil-redo %d" _)
       ))
+
+;;; evil-mc (Multiple Cursors)
+;;;
+;;;  M-x evil-mc-mode
+;;;  g r s      evil-mc-pause-cursors  (suspend)
+;;;  g r h      evil-mc-make-cursor-here
+;;;  g r h, etc.
+;;;  g r r      evil-mc-resume-cursors
+;;;  g r q      evil-mc-undo-all-cursors
+
+(evil-define-command evil-mc-undo-cursor-here ()
+  "Undo cursor at point."
+  :repeat ignore
+  :evil-mc t
+  (evil-mc-undo-cursor-at-pos (point)))
+
+;;;  g r x      evil-mc-undo-cursor-here
+(define-key evil-mc-cursors-map (kbd "x") 'evil-mc-undo-cursor-here)
