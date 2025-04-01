@@ -15,7 +15,7 @@ function evil() {
    && version="$(command emacsclient --version)" \
    && [[ "${version##* }" > 27 ]]; then
      local cli_args; cli_args="${*+"$(printf "\"%q\" " ${@+"$@"})"}"
-     command emacsclient -nw -a "" --frame-parameters "((evil-cli-args . (${cli_args//\\ / })))"
+     EVIL_PID=$$ COLORTERM= command emacsclient -nw -a "" --frame-parameters "((evil-cli-args . (${cli_args//\\ / })))"
 
   elif type -P vim >/dev/null 2>&1; then
      command vim "$@"
