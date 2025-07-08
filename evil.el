@@ -83,15 +83,15 @@
   (add-hook 'evil-local-mode-hook 'cd-pwd-env)
 
 
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;  Work with `vim-cli.sh` to parse 'evil-cli-args into 'evil-frame-buffers  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;  Work with `evil.sh` to parse 'evil-cli-args into 'evil-frame-buffers  ;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   (defun evil-cli-args-lists ()
     "Returns a list of two lists: file buffers and commands"
     (let (bufs cmds)
 
-      ;;; Parse Args into `l` List of File Buffers and `cmds`
+      ;;; Parse Args into List of File Buffers `bufs` and `cmds`
       (dolist (arg (frame-parameter (selected-frame) 'evil-cli-args))
         (if (string-match "^\\+\\(.*\\)" arg)
             (setq cmds (append cmds (list (match-string 1 arg))))
@@ -384,7 +384,7 @@
         (switch-to-buffer b))))
 
   (evil-define-command evil-split-prev-buffer (&optional count)
-    "Switch to the COUNT'th previous buffer in the `evil-frame-buffers` list"
+    "Split using the COUNT'th previous buffer in the `evil-frame-buffers` list"
     (interactive "<num>")
     (setq count (or count 1))
     (let ((b (nth-prev-evil-frame-buffer count)))
@@ -393,7 +393,7 @@
         (switch-to-buffer b))))
 
   (evil-define-command evil-split-next-buffer (&optional count)
-    "Switch to the COUNT'th next buffer in the `evil-frame-buffers` list"
+    "Split using the COUNT'th next buffer in the `evil-frame-buffers` list"
     (interactive "<num>")
     (setq count (or count 1))
     (let ((b (nth-next-evil-frame-buffer count)))
@@ -415,98 +415,17 @@
         (evil-window-top-left)
     )))
 
-  (evil-ex-define-cmd "args" 'evil-frame-buffers)
-  (evil-ex-define-cmd "fir[st]" 'evil-nth-buffer)
-  (evil-ex-define-cmd "la[st]" 'evil-nth-last-buffer)
-  (evil-ex-define-cmd "argu[ment]" 'evil-nth-buffer)
-  (evil-ex-define-cmd "nth" 'evil-nth-buffer)
-  (evil-ex-define-cmd "n[ext]" 'evil-next-buffer)
-  (evil-ex-define-cmd "p[revious]" 'evil-prev-buffer)
-  (evil-ex-define-cmd "sn[ext]" 'evil-split-next-buffer)
-  (evil-ex-define-cmd "sp[revious]" 'evil-split-prev-buffer)
-  (evil-ex-define-cmd "sall" 'evil-split-all-buffers)
+  (evil-ex-define-cmd "args"          'evil-frame-buffers)
+  (evil-ex-define-cmd "fir[st]"       'evil-nth-buffer)
+  (evil-ex-define-cmd "la[st]"        'evil-nth-last-buffer)
+  (evil-ex-define-cmd "argu[ment]"    'evil-nth-buffer)
+  (evil-ex-define-cmd "nth"           'evil-nth-buffer)
+  (evil-ex-define-cmd "n[ext]"        'evil-next-buffer)
+  (evil-ex-define-cmd "p[revious]"    'evil-prev-buffer)
+  (evil-ex-define-cmd "sn[ext]"       'evil-split-next-buffer)
+  (evil-ex-define-cmd "sp[revious]"   'evil-split-prev-buffer)
+  (evil-ex-define-cmd "sall"          'evil-split-all-buffers)
 
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;  ":brm" (remove-buffer) == delete-window and remove from current frame buffers, but don't ":bd" globally  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  (evil-define-command evil-remove-buffer (buffer &optional bang)
-    "Remove a buffer from the current frame's 'evil-frame-buffers list and delete window."
-    (interactive "<b><!>")
-    (let ((buffer (or buffer (current-buffer)))
-          (frame-buffers (frame-parameter nil 'evil-frame-buffers)))
-      ;(when bang
-      ;  (set-buffer-modified-p nil)
-      ;  (dolist (process (process-list))
-      ;    (when (eq (process-buffer process) buffer)
-      ;      (set-process-query-on-exit-flag process nil))))
-
-      (setq frame-buffers (remove buffer frame-buffers))
-      (set-frame-parameter nil 'evil-frame-buffers frame-buffers)
-
-      (dolist (window (window-list (selected-frame)))
-        (when (eq buffer (window-buffer window))
-          (if (not (= 1 (length (window-list (selected-frame)))))
-              (delete-window window)
-            (if (not frame-buffers)
-                (delete-frame)
-              (if (next-evil-frame-buffers)
-                  (switch-to-buffer (car (next-evil-frame-buffers)))
-                (if (prev-evil-frame-buffers)
-                    (switch-to-buffer (car (reverse (prev-evil-frame-buffers))))
-                  (switch-to-buffer (car frame-buffers))
-                ))))))))
-
-  (evil-ex-define-cmd "br[emove]" 'evil-remove-buffer)
-  (evil-ex-define-cmd "brm"       'evil-remove-buffer)
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;  ":be" (erase-buffer) == kill-buffer and remove from frame buffers, but don't delete windows  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  (evil-define-command evil-erase-buffer (buffer &optional bang)
-    "Kill a buffer and remove from frame buffers, but don't delete its window(s)."
-    (interactive "<b><!>")
-    (with-current-buffer (or buffer (current-buffer))
-      (when bang
-        (set-buffer-modified-p nil)
-        (dolist (process (process-list))
-          (when (eq (process-buffer process) (current-buffer))
-            (set-process-query-on-exit-flag process nil))))
-      ;; get all windows that show this buffer
-      (let ((wins (get-buffer-window-list (current-buffer) nil t)))
-        (mapc #'(lambda (w)
-                  (condition-case nil
-                      (let ((frame-buffers (frame-parameter (window-frame w) 'evil-frame-buffers)))
-                        (if (next-evil-frame-buffers w)
-                            (set-window-parameter w 'evil-frame-buffer-other (car (next-evil-frame-buffers w)))
-                          (if (prev-evil-frame-buffers w)
-                              (set-window-parameter w 'evil-frame-buffer-other (car (reverse (prev-evil-frame-buffers w))))
-                            (set-window-parameter w 'evil-frame-buffer-other (car frame-buffers))
-                            )))
-                    (error nil)))
-              wins)
-        ;; if the buffer which was initiated by emacsclient,
-        ;; call `server-edit' from server.el to avoid
-        ;; "Buffer still has clients" message
-        (if (and (fboundp 'server-edit)
-                 (boundp 'server-buffer-clients)
-                 server-buffer-clients)
-            (server-edit)
-          (kill-buffer nil)
-        )
-        ;; update all windows that showed this buffer
-        (mapc #'(lambda (w)
-                  (condition-case nil
-                      (let* ((frame-buffers (frame-parameter (window-frame w) 'evil-frame-buffers)))
-                        (when (window-parameter w 'evil-frame-buffer-other)
-                            (set-window-buffer w (window-parameter w 'evil-frame-buffer-other))
-                            (set-window-parameter w 'evil-frame-buffer-other nil)))
-                    (error nil)))
-              wins))))
-
-  (evil-ex-define-cmd "be[rase]" 'evil-erase-buffer)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  Make `^L` in "*Messages*" clear the buffer  ;;;
@@ -577,6 +496,7 @@
   (define-key evil-normal-state-map (kbd "C-w {") 'evil-maximize-window-prev)
   (define-key evil-normal-state-map (kbd "C-w .") 'evil-maximize-window-height)
   (define-key evil-normal-state-map (kbd "C-w ,") 'evil-minimize-window-height)
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  Make `_` a "word" character  ;;;
@@ -764,6 +684,87 @@
                   (error nil)))
       wins)
   ))
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;  ":brm" (remove-buffer) == delete-window and remove from current frame buffers, but don't ":bd" globally  ;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  (evil-define-command evil-remove-buffer (buffer &optional bang)
+    "Remove a buffer from the current frame's 'evil-frame-buffers list and delete window."
+    (interactive "<b><!>")
+    (let ((buffer (or buffer (current-buffer)))
+          (frame-buffers (frame-parameter nil 'evil-frame-buffers)))
+      ;(when bang
+      ;  (set-buffer-modified-p nil)
+      ;  (dolist (process (process-list))
+      ;    (when (eq (process-buffer process) buffer)
+      ;      (set-process-query-on-exit-flag process nil))))
+
+      (setq frame-buffers (remove buffer frame-buffers))
+      (set-frame-parameter nil 'evil-frame-buffers frame-buffers)
+
+      (dolist (window (window-list (selected-frame)))
+        (when (eq buffer (window-buffer window))
+          (if (not (= 1 (length (window-list (selected-frame)))))
+              (delete-window window)
+            (if (not frame-buffers)
+                (delete-frame)
+              (if (next-evil-frame-buffers)
+                  (switch-to-buffer (car (next-evil-frame-buffers)))
+                (if (prev-evil-frame-buffers)
+                    (switch-to-buffer (car (reverse (prev-evil-frame-buffers))))
+                  (switch-to-buffer (car frame-buffers))
+                ))))))))
+
+  (evil-ex-define-cmd "br[emove]" 'evil-remove-buffer)
+  (evil-ex-define-cmd "brm"       'evil-remove-buffer)
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;  ":be" (erase-buffer) == kill-buffer and remove from frame buffers, but don't delete windows  ;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  (evil-define-command evil-erase-buffer (buffer &optional bang)
+    "Kill a buffer and remove from frame buffers, but don't delete its window(s)."
+    (interactive "<b><!>")
+    (with-current-buffer (or buffer (current-buffer))
+      (when bang
+        (set-buffer-modified-p nil)
+        (dolist (process (process-list))
+          (when (eq (process-buffer process) (current-buffer))
+            (set-process-query-on-exit-flag process nil))))
+      ;; get all windows that show this buffer
+      (let ((wins (get-buffer-window-list (current-buffer) nil t)))
+        (mapc #'(lambda (w)
+                  (condition-case nil
+                      (let ((frame-buffers (frame-parameter (window-frame w) 'evil-frame-buffers)))
+                        (if (next-evil-frame-buffers w)
+                            (set-window-parameter w 'evil-frame-buffer-other (car (next-evil-frame-buffers w)))
+                          (if (prev-evil-frame-buffers w)
+                              (set-window-parameter w 'evil-frame-buffer-other (car (reverse (prev-evil-frame-buffers w))))
+                            (set-window-parameter w 'evil-frame-buffer-other (car frame-buffers))
+                            )))
+                    (error nil)))
+              wins)
+        ;; if the buffer which was initiated by emacsclient,
+        ;; call `server-edit' from server.el to avoid
+        ;; "Buffer still has clients" message
+        (if (and (fboundp 'server-edit)
+                 (boundp 'server-buffer-clients)
+                 server-buffer-clients)
+            (server-edit)
+          (kill-buffer nil)
+        )
+        ;; update all windows that showed this buffer
+        (mapc #'(lambda (w)
+                  (condition-case nil
+                      (let* ((frame-buffers (frame-parameter (window-frame w) 'evil-frame-buffers)))
+                        (when (window-parameter w 'evil-frame-buffer-other)
+                            (set-window-buffer w (window-parameter w 'evil-frame-buffer-other))
+                            (set-window-parameter w 'evil-frame-buffer-other nil)))
+                    (error nil)))
+              wins))))
+
+  (evil-ex-define-cmd "be[rase]" 'evil-erase-buffer)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  Make `:q` only quit *THIS* `emacsclient` window/buffer/frame  ;;;
