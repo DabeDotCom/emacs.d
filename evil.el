@@ -564,7 +564,7 @@
       (evil-window-set-width nil))
 
   (evil-define-command evil-maximize-window-prev (count)
-    "Maximize the height of the COUNT'th next window"
+    "Maximize the height of the COUNT'th prev window"
     (interactive "<c>")
     (dotimes (_ (or count 1))
       (evil-window-prev nil))
