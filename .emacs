@@ -62,16 +62,27 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(column-number-mode t)
+ '(custom-safe-themes
+   '("6b560fdb96dc14a69e7764256685210ac52d736b78f4d7c6f3f0d1bfe1d66289"
+     "db30d380f37bd62baca0ee17d5d7c02b407b29c5f0fbaf17e2f1a834ff91fe3b"
+     "800fcde54796d5849cfa8f3f2036558680b677a7642cdcfa22977b702cbf3bc8"
+     "da256e0c843818c5239fec7cbb39a6bf25cfc335cd99d879300e161be0f0a156"
+     "59b8cf739df8e41766e13af94c0f7c9ee6f1848fd5894b9993257a946baff85e"
+     "5b88afec54a049bab2bd316b7c6467bc30657b53238771364f34b20b8db73552"
+     "ced84dde85957960f03114b49e39e6607fe3d474dff82a096593099583f45781"
+     "896ac2ea90e85e9f3cd70a2ac2830b3bcffaa49d3a0bb9e3435b350616424a16"
+     "bdc69f8a43add813bfc1b90e9b05ea7626212b6b2392382bd2cb552e790273db"
+     default))
  '(enable-recursive-minibuffers t)
  '(menu-bar-mode nil)
  '(minibuffer-depth-indicate-mode t)
  '(package-selected-packages
-   '(dart-mode xclip lsp-mode htmlize prettier-js prettier prettier-mode mmm-mode perl-ts-mode markdown-mode tree-sitter use-package))
+   '(color-theme dart-mode htmlize lsp-mode markdown-mode mmm-mode perl-ts-mode
+     prettier prettier-js prettier-mode tree-sitter use-package xclip))
  '(safe-local-variable-values '((mmm-classes . sh-here-doc) (mmm-classes . here-doc)))
  '(tab-bar-close-last-tab-choice 'delete-frame)
  '(vc-follow-symlinks nil)
  '(xterm-extra-capabilities nil))
-  ;multi-vterm vterm
 
   (use-package markdown-mode
     :ensure t
@@ -102,14 +113,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:background unspecified))))
- '(lazy-highlight ((t (:background "#cff" :foreground "#000"))))
- '(minibuffer-prompt ((t (:foreground unspecified))))
- '(mode-line-inactive ((t (:background "gray90" :foreground "#000"))))
- '(perl-non-scalar-variable ((t (:inherit font-lock-variable-name-face))))
- '(sh-heredoc ((t (:foreground "#bc93b6")))))
-; '(sh-quoted-exec ((t (:foreground "#bc93b6"))))
-; '(whitespace-tab ((t (:background "#987123" :foreground "#123987")))))
+ '(default ((t (:background unspecified)))))
 
   (define-key minibuffer-local-completion-map " " 'minibuffer-complete-and-exit)
   (define-key minibuffer-local-completion-map (kbd "C-w") 'backward-kill-word)
@@ -190,7 +194,8 @@
 (global-whitespace-mode 1)
 
 
-;(add-hook 'before-make-frame-hook (lambda() (message "BEFORE MAKE FRAME HOOK: %s" (frame-parameter nil 'frame-parameters))))
+;(defun before-make-frame-handler () (message "BEFORE MAKE FRAME HANDLER"))
+;(remove-hook 'before-make-frame-hook 'before-make-frame-handler)
 
 ;(defadvice message (after message-tail activate)
 ;  (with-current-buffer "*Messages*"
@@ -208,16 +213,39 @@
   (if (bufferp x) x
     (find-buffer-visiting x)))
 
+(defun set-frame-background-mode (&optional f)
+  (setq f (or f (selected-frame)))
+
+ ;(message "SET-FRAME-BACKGROUND-MODE BEFORE: f=%s selected=%s -- %s" f (selected-frame) (frame-parameter f 'background-mode))
+  (set-frame-parameter f 'background-mode (pcase (upcase (or (getenv "LC_TERM_BG_COLOR" f) ""))
+                                            ("#FFFFFF" 'light)
+                                            ("#000000" 'dark)
+                                            (_         'dark)
+                                            ))
+ ;(message "SET-FRAME-BACKGROUND-MODE DURING: PWD=(%s) CUR_BG=(%s) %s" (getenv "PWD" f) (getenv "CUR_BG" f) (frame-parameter f 'background-mode))
+
+  (when (not (getenv "PWD" f))
+    ;(message "SET-FRAME-BACKGROUND-MODE: PWD unset; switching from %s to 'dark mode" (frame-parameter f 'background-mode))
+    (set-frame-parameter f 'background-mode 'dark)
+    (add-to-list 'default-frame-alist '(background-color . unspecified))
+    (add-to-list 'default-frame-alist '(foreground-color . unspecified))
+
+    (set-face-attribute 'default nil
+                        :background 'unspecified
+                        :foreground 'unspecified))
+ ;(message "SET-FRAME-BACKGROUND-MODE AFTER: f=%s selected=%s -- %s" f (selected-frame) (frame-parameter f 'background-mode))
+  (face-set-after-frame-default f))
+
+(add-hook 'after-make-frame-functions 'set-frame-background-mode)
+
 ;(defun show-frame-parameters (f)
-;   ;(message "AFTER MAKE FRAME HOOK -- FRAME PARAMETERS: %s" (frame-parameters f)))
-;   (message "AFTER MAKE FRAME HOOK -- FRAME PARAMETER: %s" (frame-parameter f 'frame-parameters))
-;   (let ((p (frame-parameter f 'frame-parameters)))
-;      (dolist (word p) (message "Frame Parameter: %s" word))))
+;   ;(message "AFTER MAKE FRAME HOOK -- FRAME=%s PARAMETERS: %s" f (frame-parameters f))
+;   (let ((p (frame-parameters f)))
+;      (dolist (word p) (message "Frame %s Parameter: %s" f word))))
 ;
 ;;(add-hook 'after-make-frame-functions (lambda(f) (message "AFTER MAKE FRAME HOOK: %s" (buffer-list (selected-frame)))))
+;;(add-hook 'server-after-make-frame-hook 'cd-pwd-env)
 ;(add-hook 'after-make-frame-functions 'show-frame-parameters)
-;(add-hook 'server-after-make-frame-hook 'cd-pwd-env)
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

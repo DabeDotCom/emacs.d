@@ -27,8 +27,7 @@
   (customize-set-variable 'window-combination-resize t)
   (customize-set-variable 'evil-jumps-cross-buffers nil)
 
-  (load-theme 'vim-colors t t)
-  (enable-theme 'vim-colors)
+  (load-file (concat user-emacs-directory "vim-colors.el") nil t)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  From https://www.emacswiki.org/emacs/AlarmBell  ;;;
@@ -704,13 +703,6 @@
     (define-key map "\C-f" 'evil-forward-char)
     (define-key map "\C-k" 'evil-delete-line)
   )
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;  Override Custom Face Colors  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;
-  ;(set-face-attribute 'evil-ex-info nil :foreground "#ffd7d7")
-  ;(set-face-attribute 'evil-ex-lazy-highlight nil :background "#999" :foreground "#000")
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
