@@ -704,6 +704,9 @@
     (define-key map "\C-k" 'evil-delete-line)
   )
 
+  (define-key evil-normal-state-map (kbd "M-b") 'evil-backward-word-begin)
+  (define-key evil-normal-state-map (kbd "M-f") 'evil-forward-word-begin)
+
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;  "Unbreak" Info Mode  ;;;
