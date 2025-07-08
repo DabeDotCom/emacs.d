@@ -149,6 +149,13 @@
 
   ;;; From https://jamiecollinson.com/blog/my-emacs-config/
   (setq-default indent-tabs-mode nil)
+
+  ;;; Except...
+  (define-key evil-normal-state-map  (kbd "<backtab>") 'indent-for-tab-command)
+  (define-key evil-motion-state-map  (kbd "<backtab>") 'indent-for-tab-command)
+  (define-key evil-insert-state-map  (kbd "<backtab>") 'indent-for-tab-command)
+  (define-key evil-replace-state-map (kbd "<backtab>") 'indent-for-tab-command)
+
 ; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   (add-to-list 'auto-mode-alist `(,(concat "^" abbreviated-home-dir "\\.bash[^/]*\\'") . sh-mode))
